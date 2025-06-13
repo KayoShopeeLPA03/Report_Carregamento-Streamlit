@@ -12,9 +12,7 @@ st.set_page_config(
 )
 
 st.markdown("---")
-st.caption("**Desenvolvido por Kayo Soares - LPA 03**") 
-
-
+st.caption("**Desenvolvido por Kayo Soares - LPA 03**")
 
 if st.button("🔄 Atualizar dados"):
     st.rerun()
@@ -42,7 +40,6 @@ try:
     df.columns = df.columns.str.strip()
     df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
 
-    
     data_carregamento = df["Data Exp."].iloc[0] if "Data Exp." in df.columns else datetime.today().strftime('%d/%m/%Y')
 
     total_rotas = df["Gaiola"].nunique()
@@ -53,32 +50,61 @@ try:
     total_processadas = rotas_carregadas + rotas_nao_carregadas
     percentual_carregado = (rotas_carregadas / total_processadas) * 100 if total_processadas > 0 else 0
 
-    
     st.markdown(f"""
         <h2 style='text-align: center;'>⏱️ Report de Carregamento - LPA-03</h2>
-        <p style='text-align: center; font-size: 18px;'>📅 Carregamento referente ao dia: <b>{data_carregamento}</b></p>
+        <p style='text-align: center; font-size: 16px;'>📅 Carregamento referente ao dia: <b>{data_carregamento}</b></p>
     """, unsafe_allow_html=True)
 
-    
-    indicadores = [
-        ("🧾 Total de Rotas", total_rotas, "#303031"),
-        ("🌙 Rotas PM", rotas_pm, "#000080"),
-        ("✅ Carregadas", rotas_carregadas, "#36B258"),
-        ("❌ Não Carregadas", rotas_nao_carregadas, "#ee2d2d")
-    ]
+    # Indicadores com layout responsivo (2 colunas por linha)
+    col1, col2 = st.columns(2)
 
-    for titulo, valor, cor in indicadores:
+    with col1:
         st.markdown(
             f"""
-            <div style="background-color:{cor};padding:20px;border-radius:10px;text-align:center;margin-bottom:15px;">
-                <h3 style="color:white;font-size:20px;">{titulo}</h3>
-                <h2 style="color:white;font-size:32px;">{valor}</h2>
+            <div style="background-color:#303031;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
+                <h5 style="color:white;margin-bottom:6px;">🧾 Total de Rotas</h5>
+                <h3 style="color:white;margin:0;">{total_rotas}</h3>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-    
+    with col2:
+        st.markdown(
+            f"""
+            <div style="background-color:#000080;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
+                <h5 style="color:white;margin-bottom:6px;">🌙 Rotas PM</h5>
+                <h3 style="color:white;margin:0;">{rotas_pm}</h3>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    col3, col4 = st.columns(2)
+
+    with col3:
+        st.markdown(
+            f"""
+            <div style="background-color:#36B258;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
+                <h5 style="color:white;margin-bottom:6px;">✅ Carregadas</h5>
+                <h3 style="color:white;margin:0;">{rotas_carregadas}</h3>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with col4:
+        st.markdown(
+            f"""
+            <div style="background-color:#ee2d2d;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
+                <h5 style="color:white;margin-bottom:6px;">❌ Não Carregadas</h5>
+                <h3 style="color:white;margin:0;">{rotas_nao_carregadas}</h3>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    # Gráfico com expansor
     with st.expander("📈 Ver gráfico de status de carregamento"):
         fig = go.Figure(data=[go.Pie(
             labels=["Carregadas", "Não Carregadas"],
@@ -104,7 +130,7 @@ try:
             annotations=[dict(
                 text=f"{percentual_carregado:.1f}%",
                 x=0.5, y=0.5,
-                font=dict(size=28, color="black"),
+                font=dict(size=24, color="black"),
                 showarrow=False
             )]
         )
