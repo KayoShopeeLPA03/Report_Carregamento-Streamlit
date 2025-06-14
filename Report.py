@@ -4,7 +4,6 @@ import pandas as pd
 import plotly.graph_objects as go
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
-import pytz  
 
 st.set_page_config(
     page_title="Report Carregamento - LPA-03", 
@@ -51,15 +50,21 @@ try:
     total_processadas = rotas_carregadas + rotas_nao_carregadas
     percentual_carregado = (rotas_carregadas / total_processadas) * 100 if total_processadas > 0 else 0
 
-    
-    fuso_brasil = pytz.timezone("America/Sao_Paulo")
-    hora_atualizacao = datetime.now(fuso_brasil).strftime("%H:%M:%S")
+    # Novo cálculo: meta 98% até 9h da manhã
+    total_rotas_am = df[df["OpsClock"] <= "09:00"]["Gaiola"].nunique()
+    rotas_am_carregadas = df[(df["OpsClock"] <= "09:00") & (df["OK?"] == "OK")]["Gaiola"].nunique()
 
-    
+    meta_opsclock = total_rotas_am * 0.98
+    rotas_faltantes = max(0, int(round(meta_opsclock - rotas_am_carregadas)))
+    percentual_realizado = (rotas_am_carregadas / total_rotas_am) * 100 if total_rotas_am > 0 else 0
+    atingiu_meta = rotas_am_carregadas >= meta_opsclock
+
+    # Horário da última atualização
+    hora_atualizacao = datetime.now().strftime("%H:%M:%S")
     st.markdown(
         f"""
-        <div style="background-color:#f0f0f0;padding:10px;border-radius:8px;text-align:center;margin-bottom:15px;border: 1px solid #ccc;">
-            <h5 style="color:#000;margin:0;">⏰ Última atualização: <span style="color:#ffffff;background-color:#007ACC;padding:4px 8px;border-radius:5px;">{hora_atualizacao}</span></h5>
+        <div style="background-color:#444;padding:10px;border-radius:8px;text-align:center;margin-bottom:15px;">
+            <h5 style="color:white;margin:0;">⏰ Última atualização: <span style="color:#00c6ff;">{hora_atualizacao}</span></h5>
         </div>
         """,
         unsafe_allow_html=True
@@ -71,7 +76,6 @@ try:
     """, unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
-
     with col1:
         st.markdown(
             f"""
@@ -82,7 +86,6 @@ try:
             """,
             unsafe_allow_html=True
         )
-
     with col2:
         st.markdown(
             f"""
@@ -95,7 +98,6 @@ try:
         )
 
     col3, col4 = st.columns(2)
-
     with col3:
         st.markdown(
             f"""
@@ -106,7 +108,6 @@ try:
             """,
             unsafe_allow_html=True
         )
-
     with col4:
         st.markdown(
             f"""
@@ -118,6 +119,31 @@ try:
             unsafe_allow_html=True
         )
 
+    # Meta OPS Clock - 98%
+    col5, col6 = st.columns(2)
+    with col5:
+        cor_fundo = "#36B258" if atingiu_meta else "#FFA500"
+        st.markdown(
+            f"""
+            <div style="background-color:{cor_fundo};padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
+                <h5 style="color:white;margin-bottom:6px;">⏰ Meta 98% até 9h</h5>
+                <h3 style="color:white;margin:0;">{rotas_am_carregadas} / {total_rotas_am} ({percentual_realizado:.0f}%)</h3>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    with col6:
+        st.markdown(
+            f"""
+            <div style="background-color:#DC143C;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
+                <h5 style="color:white;margin-bottom:6px;">📉 Rotas faltantes p/ meta</h5>
+                <h3 style="color:white;margin:0;">{rotas_faltantes}</h3>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    # Gráfico pizza
     with st.expander("📈 Ver gráfico de status de carregamento"):
         fig = go.Figure(data=[go.Pie(
             labels=["Carregadas", "Não Carregadas"],
