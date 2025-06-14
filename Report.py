@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
+import pytz  
 
 st.set_page_config(
     page_title="Report Carregamento - LPA-03", 
@@ -50,11 +51,15 @@ try:
     total_processadas = rotas_carregadas + rotas_nao_carregadas
     percentual_carregado = (rotas_carregadas / total_processadas) * 100 if total_processadas > 0 else 0
 
-    hora_atualizacao = datetime.now().strftime("%H:%M:%S")
+    
+    fuso_brasil = pytz.timezone("America/Sao_Paulo")
+    hora_atualizacao = datetime.now(fuso_brasil).strftime("%H:%M:%S")
+
+    
     st.markdown(
         f"""
-        <div style="background-color:#007ACC;padding:10px;border-radius:8px;text-align:center;margin-bottom:15px;border: 1px solid #ccc;">
-            <h5 style="color:white;margin:0;">⏰ Última atualização: <span style="color:white;">{hora_atualizacao}</span></h5>
+        <div style="background-color:#f0f0f0;padding:10px;border-radius:8px;text-align:center;margin-bottom:15px;border: 1px solid #ccc;">
+            <h5 style="color:#000;margin:0;">⏰ Última atualização: <span style="color:#ffffff;background-color:#007ACC;padding:4px 8px;border-radius:5px;">{hora_atualizacao}</span></h5>
         </div>
         """,
         unsafe_allow_html=True
