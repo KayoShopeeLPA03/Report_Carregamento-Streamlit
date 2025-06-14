@@ -54,7 +54,7 @@ try:
 
     st.markdown(
     f"""
-    <div style="background-color:#f0f0f0;padding:10px;border-radius:8px;text-align:center;margin-bottom:15px;border: 1px solid #ccc;">
+    <div style="background-color:#303031;padding:10px;border-radius:8px;text-align:center;margin-bottom:15px;border: 1px solid #ccc;">
         <h5 style="color:#333;margin:0;">⏰ Última atualização: <span style="color:#007ACC;">{hora_atualizacao}</span></h5>
     </div>
     """,
