@@ -50,15 +50,16 @@ try:
     total_processadas = rotas_carregadas + rotas_nao_carregadas
     percentual_carregado = (rotas_carregadas / total_processadas) * 100 if total_processadas > 0 else 0
 
-    hora_atualizacao = datetime.now().strftime("H%:M%:S%")
-
+    # ⏰ Bloco de horário da última atualização
+    hora_atualizacao = datetime.now().strftime("%H:%M:%S")
     st.markdown(
-    f"""
-    <div style="background-color:#303031;padding:10px;border-radius:8px;text-align:center;margin-bottom:15px;border: 1px solid #ccc;">
-        <h5 style="color:#333;margin:0;">⏰ Última atualização: <span style="color:#007ACC;">{hora_atualizacao}</span></h5>
-    </div>
-    """,
-    unsafe_allow_html=True)
+        f"""
+        <div style="background-color:#007ACC;padding:10px;border-radius:8px;text-align:center;margin-bottom:15px;border: 1px solid #ccc;">
+            <h5 style="color:white;margin:0;">⏰ Última atualização: <span style="color:white;">{hora_atualizacao}</span></h5>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     st.markdown(f"""
         <h2 style='text-align: center;'>⏱️ Report de Carregamento - LPA-03</h2>
@@ -113,7 +114,6 @@ try:
             unsafe_allow_html=True
         )
 
-    
     with st.expander("📈 Ver gráfico de status de carregamento"):
         fig = go.Figure(data=[go.Pie(
             labels=["Carregadas", "Não Carregadas"],
