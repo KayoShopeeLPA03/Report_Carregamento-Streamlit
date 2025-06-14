@@ -50,7 +50,7 @@ try:
     total_processadas = rotas_carregadas + rotas_nao_carregadas
     percentual_carregado = (rotas_carregadas / total_processadas) * 100 if total_processadas > 0 else 0
 
-    hora_atualizacao = datetime.now().strftime('H%:M%:S%')
+    hora_atualizacao = datetime.now().strftime("H%:M%:S%")
 
     st.markdown(
     f"""
