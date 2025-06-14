@@ -121,16 +121,53 @@ try:
         )
 
     col5, col6 = st.columns(2)
-    with col5:
-        st.markdown(
-            f"<p style='font-size:18px;'><b>⏰ Meta 98% até 9h:</b> {rotas_am_carregadas} / {total_rotas_am} — <b>{percentual_realizado:.0f}%</b></p>",
-            unsafe_allow_html=True
-        )
-    with col6:
-        st.markdown(
-            f"<p style='font-size:18px;'><b>📉 Rotas faltantes para atingir a meta:</b> {rotas_faltantes}</p>",
-            unsafe_allow_html=True
-        )
+with col5:
+    st.markdown(
+        f"<b>⏰ Meta 98% até 9h:</b> {rotas_am_carregadas} / {total_rotas_am} — <b>{percentual_realizado:.0f}%</b>",
+        unsafe_allow_html=True
+    )
+    st.markdown(f"""
+        <div style="background-color: #1e1e1e; border-radius: 12px; height: 26px; width: 100%; border: 1px solid #333;">
+            <div style="
+                background-color: #36B258;
+                width: {percentual_realizado:.1f}%;
+                height: 100%;
+                border-radius: 12px;
+                text-align: center;
+                line-height: 26px;
+                color: white;
+                font-weight: 600;
+                font-size: 15px;
+            ">
+                {percentual_realizado:.0f}%
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+with col6:
+    st.markdown(
+        f"<b>📉 Rotas faltantes para atingir a meta:</b> {rotas_faltantes}",
+        unsafe_allow_html=True
+    )
+
+    rotas_faltantes_pct = min(100, (rotas_faltantes / total_rotas_am) * 100) if total_rotas_am else 0
+    st.markdown(f"""
+        <div style="background-color: #1e1e1e; border-radius: 12px; height: 26px; width: 100%; border: 1px solid #333;">
+            <div style="
+                background-color: #ee2d2d;
+                width: {rotas_faltantes_pct:.1f}%;
+                height: 100%;
+                border-radius: 12px;
+                text-align: center;
+                line-height: 26px;
+                color: white;
+                font-weight: 600;
+                font-size: 15px;
+            ">
+                {rotas_faltantes_pct:.0f}%
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
     # Gráfico pizza
     with st.expander("📈 Ver gráfico de status de carregamento"):
