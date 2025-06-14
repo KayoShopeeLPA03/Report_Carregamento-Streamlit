@@ -139,7 +139,7 @@ try:
             annotations=[dict(
                 text=f"{percentual_carregado:.1f}%",
                 x=0.5, y=0.5,
-                font=dict(size=24, color="black"),
+                font=dict(size=24, color="white"),
                 showarrow=False
             )]
         )
