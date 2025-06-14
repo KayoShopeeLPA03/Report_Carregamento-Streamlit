@@ -129,7 +129,6 @@ with col6:
     st.markdown(
         f"**📉 Rotas faltantes para atingir a meta:** {rotas_faltantes}"
     )
-
     # Gráfico pizza
     with st.expander("📈 Ver gráfico de status de carregamento"):
         fig = go.Figure(data=[go.Pie(
