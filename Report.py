@@ -121,14 +121,17 @@ try:
         )
 
     col5, col6 = st.columns(2)
-with col5:
-    st.markdown(
-        f"**⏰ Meta 98% até 9h:** {rotas_am_carregadas} / {total_rotas_am} — **{percentual_realizado:.0f}%**"
-    )
-with col6:
-    st.markdown(
-        f"**📉 Rotas faltantes para atingir a meta:** {rotas_faltantes}"
-    )
+    with col5:
+        st.markdown(
+            f"<p style='font-size:18px;'><b>⏰ Meta 98% até 9h:</b> {rotas_am_carregadas} / {total_rotas_am} — <b>{percentual_realizado:.0f}%</b></p>",
+            unsafe_allow_html=True
+        )
+    with col6:
+        st.markdown(
+            f"<p style='font-size:18px;'><b>📉 Rotas faltantes para atingir a meta:</b> {rotas_faltantes}</p>",
+            unsafe_allow_html=True
+        )
+
     # Gráfico pizza
     with st.expander("📈 Ver gráfico de status de carregamento"):
         fig = go.Figure(data=[go.Pie(
