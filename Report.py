@@ -121,27 +121,14 @@ try:
         )
 
     col5, col6 = st.columns(2)
-    with col5:
-        cor_fundo = "#36B258" if atingiu_meta else "#FFA500"
-        st.markdown(
-            f"""
-            <div style="background-color:{cor_fundo};padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
-                <h5 style="color:white;margin-bottom:6px;">⏰ Meta 98% até 9h</h5>
-                <h3 style="color:white;margin:0;">{rotas_am_carregadas} / {total_rotas_am} ({percentual_realizado:.0f}%)</h3>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    with col6:
-        st.markdown(
-            f"""
-            <div style="background-color:#DC143C;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
-                <h5 style="color:white;margin-bottom:6px;">📉 Rotas faltantes p/ meta</h5>
-                <h3 style="color:white;margin:0;">{rotas_faltantes}</h3>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+with col5:
+    st.markdown(
+        f"**⏰ Meta 98% até 9h:** {rotas_am_carregadas} / {total_rotas_am} — **{percentual_realizado:.0f}%**"
+    )
+with col6:
+    st.markdown(
+        f"**📉 Rotas faltantes para atingir a meta:** {rotas_faltantes}"
+    )
 
     # Gráfico pizza
     with st.expander("📈 Ver gráfico de status de carregamento"):
