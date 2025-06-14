@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
+import pytz
 
 st.set_page_config(
     page_title="Report Carregamento - LPA-03", 
@@ -50,7 +51,7 @@ try:
     total_processadas = rotas_carregadas + rotas_nao_carregadas
     percentual_carregado = (rotas_carregadas / total_processadas) * 100 if total_processadas > 0 else 0
 
-    # Novo cálculo: meta 98% até 9h da manhã
+    
     total_rotas_am = df[df["OpsClock"] <= "09:00"]["Gaiola"].nunique()
     rotas_am_carregadas = df[(df["OpsClock"] <= "09:00") & (df["OK?"] == "OK")]["Gaiola"].nunique()
 
@@ -59,7 +60,7 @@ try:
     percentual_realizado = (rotas_am_carregadas / total_rotas_am) * 100 if total_rotas_am > 0 else 0
     atingiu_meta = rotas_am_carregadas >= meta_opsclock
 
-    # Horário da última atualização
+    fuso_brasil = pytz.timezone("America/Sao_Paulo")
     hora_atualizacao = datetime.now().strftime("%H:%M:%S")
     st.markdown(
         f"""
@@ -119,7 +120,6 @@ try:
             unsafe_allow_html=True
         )
 
-    # Meta OPS Clock - 98%
     col5, col6 = st.columns(2)
     with col5:
         cor_fundo = "#36B258" if atingiu_meta else "#FFA500"
