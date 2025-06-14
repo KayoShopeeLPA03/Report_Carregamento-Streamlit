@@ -6,7 +6,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import pytz
 
-# Configuração da página
+
 st.set_page_config(
     page_title="Report Carregamento - LPA-03",
     page_icon="⏱️",
@@ -16,11 +16,11 @@ st.set_page_config(
 st.markdown("---")
 st.caption("**Desenvolvido por Kayo Soares - LPA 03**")
 
-# Botão para atualizar dados
+
 if st.button("🔄 Atualizar dados"):
     st.rerun()
 
-# Autenticação com Google Sheets
+
 file_name = "teste-motoristas-4f5250c96818.json"
 scopes = [
     "https://spreadsheets.google.com/feeds",
@@ -40,14 +40,14 @@ try:
     df.columns = df.columns.str.strip()
     df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
 
-    # Informações básicas
+    
     data_carregamento = df["Data Exp."].iloc[0] if "Data Exp." in df.columns else datetime.today().strftime('%d/%m/%Y')
     total_rotas = df["Gaiola"].nunique()
     rotas_pm = df[df["OpsClock"] == "PM 12:00"]["Gaiola"].nunique()
     rotas_carregadas = df[df["OK?"] == "OK"]["Gaiola"].nunique()
     rotas_nao_carregadas = df[df["OK?"] == "-"]["Gaiola"].nunique()
 
-    # Cálculos
+    
     total_processadas = rotas_carregadas + rotas_nao_carregadas
     percentual_carregado = (rotas_carregadas / total_processadas) * 100 if total_processadas > 0 else 0
 
@@ -58,7 +58,7 @@ try:
     percentual_realizado = (rotas_am_carregadas / total_rotas_am) * 100 if total_rotas_am > 0 else 0
     atingiu_meta = rotas_am_carregadas >= meta_opsclock
 
-    # Hora da última atualização
+    
     fuso_brasil = pytz.timezone("America/Sao_Paulo")
     hora_atualizacao = datetime.now(fuso_brasil).strftime("%H:%M:%S")
 
@@ -73,7 +73,7 @@ try:
         <p style='text-align: center; font-size: 16px;'>📅 Carregamento referente ao dia: <b>{data_carregamento}</b></p>
     """, unsafe_allow_html=True)
 
-    # Indicadores principais
+    
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(f"""
@@ -154,7 +154,7 @@ try:
             </div>
         """, unsafe_allow_html=True)
 
-    # Gráfico de Pizza
+    
     with st.expander("📈 Ver gráfico de status de carregamento"):
         fig = go.Figure(data=[go.Pie(
             labels=["Carregadas", "Não Carregadas"],
