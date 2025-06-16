@@ -56,7 +56,7 @@ try:
     percentual_realizado_geral = (rotas_carregadas / total_rotas) * 100 if total_rotas > 0 else 0
 
     fuso_brasil = pytz.timezone("America/Sao_Paulo")
-    hora_atualizacao = datetime.now().strftime("%H:%M:%S")
+    hora_atualizacao = datetime.now(fuso_brasil).strftime("%H:%M:%S")
     st.markdown(
         f"""
         <div style="background-color:#444;padding:10px;border-radius:8px;text-align:center;margin-bottom:15px;">
