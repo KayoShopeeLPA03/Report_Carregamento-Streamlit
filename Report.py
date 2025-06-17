@@ -7,6 +7,7 @@ from datetime import datetime
 import pytz
 import math
 
+# Configurações da página
 st.set_page_config(
     page_title="Report Carregamento - LPA-03", 
     page_icon="⏱️",
@@ -16,9 +17,11 @@ st.set_page_config(
 st.markdown("---")
 st.caption("**Desenvolvido por Kayo Soares - LPA 03**")
 
+# Botão de atualização manual
 if st.button("🔄 Atualizar dados"):
     st.rerun()
 
+# Autenticação com Google Sheets
 file_name = "teste-motoristas-4f5250c96818.json"
 Scopes = [
     "https://spreadsheets.google.com/feeds",
@@ -42,8 +45,9 @@ try:
     df.columns = df.columns.str.strip()
     df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
 
-    data_carregamento = df["Data Exp."].iloc[0] if "Data Exp." in df.columns else datetime.today().strftime('%d/%m/%Y')
+    data_carregamento = df["Data Exp."].iloc[0] if "Data Exp." in df.columns and not df["Data Exp."].isnull().all() else datetime.today().strftime('%d/%m/%Y')
 
+    # KPIs
     total_rotas = df["Gaiola"].nunique()
     rotas_pm = df[df["OpsClock"] == "PM 12:00"]["Gaiola"].nunique()
     rotas_carregadas = df[df["OK?"] == "OK"]["Gaiola"].nunique()
@@ -69,34 +73,37 @@ try:
         unsafe_allow_html=True
     )
 
+    # Título
     st.markdown(f"""
         <h2 style='text-align: center;'>⏱️ Report de Carregamento - LPA-03</h2>
         <p style='text-align: center; font-size: 16px;'>🗓️ Carregamento referente ao dia: <b>{data_carregamento}</b></p>
     """, unsafe_allow_html=True)
 
+    # KPIs superiores
     col1, col2 = st.columns(2)
-with col1:
-    st.markdown(
-        f"""
-        <div style="background-color:#303031;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
-            <h5 style="color:white;margin-bottom:6px;">🧾 Total de Rotas</h5>
-            <h3 style="color:white;margin:0;">{total_rotas}</h3>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    with col1:
+        st.markdown(
+            f"""
+            <div style="background-color:#303031;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
+                <h5 style="color:white;margin-bottom:6px;">🧾 Total de Rotas</h5>
+                <h3 style="color:white;margin:0;">{total_rotas}</h3>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-with col2:
-    st.markdown(
-        f"""
-        <div style="background-color:#000080;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
-            <h5 style="color:white;margin-bottom:6px;">🌙 Rotas PM</h5>
-            <h3 style="color:white;margin:0;">{rotas_pm}</h3>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    with col2:
+        st.markdown(
+            f"""
+            <div style="background-color:#000080;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
+                <h5 style="color:white;margin-bottom:6px;">🌙 Rotas PM</h5>
+                <h3 style="color:white;margin:0;">{rotas_pm}</h3>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
+    # Carregadas e Não Carregadas
     col3, col4 = st.columns(2)
     with col3:
         st.markdown(
@@ -108,6 +115,7 @@ with col2:
             """,
             unsafe_allow_html=True
         )
+
     with col4:
         st.markdown(
             f"""
@@ -119,6 +127,7 @@ with col2:
             unsafe_allow_html=True
         )
 
+    # Barras de progresso
     col5, col6 = st.columns(2)
 
     with col5:
@@ -138,9 +147,7 @@ with col2:
                     color: white;
                     font-weight: 600;
                     font-size: 15px;
-                ">
-                    {percentual_realizado_total:.2f}%
-                </div>
+                ">{percentual_realizado_total:.2f}%</div>
             </div>
         """, unsafe_allow_html=True)
 
@@ -161,12 +168,11 @@ with col2:
                     color: black;
                     font-weight: 600;
                     font-size: 15px;
-                ">
-                    {percentual_progresso_meta:.2f}%
-                </div>
+                ">{percentual_progresso_meta:.2f}%</div>
             </div>
         """, unsafe_allow_html=True)
 
+    # Gráfico de pizza
     with st.expander("📈 Ver gráfico de status de carregamento"):
         fig = go.Figure(data=[go.Pie(
             labels=["Carregadas", "Não Carregadas"],
