@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import pytz
+import math
 
 st.set_page_config(
     page_title="Report Carregamento - LPA-03", 
@@ -51,9 +52,11 @@ try:
     total_processadas = rotas_carregadas + rotas_nao_carregadas
     percentual_carregado = (rotas_carregadas / total_processadas) * 100 if total_processadas > 0 else 0
 
-    meta_geral = total_rotas * 0.98
-    rotas_faltantes_geral = max(0, int(round(meta_geral - rotas_carregadas)))
+    meta_geral = math.floor(total_rotas * 0.98)
+    rotas_faltantes_geral = max(0, meta_geral - rotas_carregadas)
     percentual_realizado_geral = (rotas_carregadas / total_rotas) * 100 if total_rotas > 0 else 0
+    progresso_meta_98 = (rotas_carregadas / meta_geral) * 100 if meta_geral > 0 else 0
+    progresso_meta_98 = min(progresso_meta_98, 100)
 
     fuso_brasil = pytz.timezone("America/Sao_Paulo")
     hora_atualizacao = datetime.now(fuso_brasil).strftime("%H:%M:%S")
@@ -68,7 +71,7 @@ try:
 
     st.markdown(f"""
         <h2 style='text-align: center;'>⏱️ Report de Carregamento - LPA-03</h2>
-        <p style='text-align: center; font-size: 16px;'>📅 Carregamento referente ao dia: <b>{data_carregamento}</b></p>
+        <p style='text-align: center; font-size: 16px;'>🗓️ Carregamento referente ao dia: <b>{data_carregamento}</b></p>
     """, unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
@@ -116,16 +119,17 @@ try:
         )
 
     col5, col6 = st.columns(2)
+
     with col5:
         st.markdown(
-            f"<b>⏱️ Meta 98% do total:</b> {rotas_carregadas} / {total_rotas} — <b>{percentual_realizado_geral:.0f}%</b>",
+            f"<b>⏱️ Meta 98% do total:</b> {rotas_carregadas} / {total_rotas} — <b>{percentual_realizado_geral:.2f}%</b>",
             unsafe_allow_html=True
         )
         st.markdown(f"""
             <div style="background-color: #1e1e1e; border-radius: 12px; height: 26px; width: 100%; border: 1px solid #333;">
                 <div style="
                     background-color: #36B258;
-                    width: {percentual_realizado_geral:.1f}%;
+                    width: {percentual_realizado_geral:.2f}%;
                     height: 100%;
                     border-radius: 12px;
                     text-align: center;
@@ -134,23 +138,21 @@ try:
                     font-weight: 600;
                     font-size: 15px;
                 ">
-                    {percentual_realizado_geral:.0f}%
+                    {percentual_realizado_geral:.2f}%
                 </div>
             </div>
         """, unsafe_allow_html=True)
 
     with col6:
         st.markdown(
-            f"<b>📉 Rotas faltantes para atingir a meta:</b> {rotas_faltantes_geral}",
+            f"<b>📉 Progresso até atingir a meta (98%):</b> {progresso_meta_98:.2f}%",
             unsafe_allow_html=True
         )
-
-        rotas_faltantes_pct = min(100, (rotas_faltantes_geral / total_rotas) * 100) if total_rotas else 0
         st.markdown(f"""
             <div style="background-color: #1e1e1e; border-radius: 12px; height: 26px; width: 100%; border: 1px solid #333;">
                 <div style="
-                    background-color: #ee2d2d;
-                    width: {rotas_faltantes_pct:.1f}%;
+                    background-color: #36B258;
+                    width: {progresso_meta_98:.2f}%;
                     height: 100%;
                     border-radius: 12px;
                     text-align: center;
@@ -159,7 +161,7 @@ try:
                     font-weight: 600;
                     font-size: 15px;
                 ">
-                    {rotas_faltantes_pct:.0f}%
+                    {progresso_meta_98:.2f}%
                 </div>
             </div>
         """, unsafe_allow_html=True)
