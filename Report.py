@@ -5,7 +5,6 @@ import plotly.graph_objects as go
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import pytz
-import math
 
 st.set_page_config(
     page_title="Report Carregamento - LPA-03", 
@@ -52,11 +51,12 @@ try:
     total_processadas = rotas_carregadas + rotas_nao_carregadas
     percentual_carregado = (rotas_carregadas / total_processadas) * 100 if total_processadas > 0 else 0
 
-    meta_geral = math.floor(total_rotas * 0.98)
-    rotas_faltantes_geral = max(0, meta_geral - rotas_carregadas)
-    percentual_realizado_geral = (rotas_carregadas / total_rotas) * 100 if total_rotas > 0 else 0
-    progresso_meta_98 = (rotas_carregadas / meta_geral) * 100 if meta_geral > 0 else 0
-    progresso_meta_98 = min(progresso_meta_98, 100)
+    # NOVO CÁLCULO DA META DE 98%
+    meta_98_qtd = round(total_rotas * 0.98)
+    percentual_realizado_total = (rotas_carregadas / total_rotas) * 100 if total_rotas > 0 else 0
+    percentual_progresso_meta = (rotas_carregadas / meta_98_qtd) * 100 if meta_98_qtd > 0 else 0
+    percentual_progresso_meta = min(percentual_progresso_meta, 100)
+    rotas_faltando_para_meta = max(0, meta_98_qtd - rotas_carregadas)
 
     fuso_brasil = pytz.timezone("America/Sao_Paulo")
     hora_atualizacao = datetime.now(fuso_brasil).strftime("%H:%M:%S")
@@ -122,14 +122,14 @@ try:
 
     with col5:
         st.markdown(
-            f"<b>⏱️ Meta 98% do total:</b> {rotas_carregadas} / {total_rotas} — <b>{percentual_realizado_geral:.2f}%</b>",
+            f"<b>⏱️ Meta 98% do total ({meta_98_qtd} rotas):</b> {rotas_carregadas} / {total_rotas} — <b>{percentual_realizado_total:.2f}%</b>",
             unsafe_allow_html=True
         )
         st.markdown(f"""
             <div style="background-color: #1e1e1e; border-radius: 12px; height: 26px; width: 100%; border: 1px solid #333;">
                 <div style="
                     background-color: #36B258;
-                    width: {percentual_realizado_geral:.2f}%;
+                    width: {percentual_realizado_total:.2f}%;
                     height: 100%;
                     border-radius: 12px;
                     text-align: center;
@@ -138,21 +138,21 @@ try:
                     font-weight: 600;
                     font-size: 15px;
                 ">
-                    {percentual_realizado_geral:.2f}%
+                    {percentual_realizado_total:.2f}%
                 </div>
             </div>
         """, unsafe_allow_html=True)
 
     with col6:
         st.markdown(
-            f"<b>📉 Progresso até atingir a meta (98%):</b> {progresso_meta_98:.2f}%",
+            f"<b>📉 Progresso até atingir 98% da meta:</b> {percentual_progresso_meta:.2f}% — <b>{rotas_faltando_para_meta} faltando</b>",
             unsafe_allow_html=True
         )
         st.markdown(f"""
             <div style="background-color: #1e1e1e; border-radius: 12px; height: 26px; width: 100%; border: 1px solid #333;">
                 <div style="
                     background-color: #36B258;
-                    width: {progresso_meta_98:.2f}%;
+                    width: {percentual_progresso_meta:.2f}%;
                     height: 100%;
                     border-radius: 12px;
                     text-align: center;
@@ -161,7 +161,7 @@ try:
                     font-weight: 600;
                     font-size: 15px;
                 ">
-                    {progresso_meta_98:.2f}%
+                    {percentual_progresso_meta:.2f}%
                 </div>
             </div>
         """, unsafe_allow_html=True)
