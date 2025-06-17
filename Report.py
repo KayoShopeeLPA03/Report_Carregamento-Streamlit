@@ -75,16 +75,18 @@ try:
     """, unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
-    with col1:
-        st.markdown(
-            f"""
-            <div style="background-color:#303031;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
-                <h5 style="color:white;margin-bottom:6px;">🧾 Meta 98% do Total</h5>
-                <h3 style="color:white;margin:0;">{meta_98_qtd}</h3>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    col1, col2 = st.columns(2)
+with col1:
+    st.markdown(
+        f"""
+        <div style="background-color:#303031;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
+            <h5 style="color:white;margin-bottom:6px;">🧾 Total de Rotas</h5>
+            <h3 style="color:white;margin:0;">{total_rotas}</h3>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
     with col2:
         st.markdown(
             f"""
