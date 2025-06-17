@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import pytz
+import math
 
 st.set_page_config(
     page_title="Report Carregamento - LPA-03", 
@@ -51,7 +52,6 @@ try:
     total_processadas = rotas_carregadas + rotas_nao_carregadas
     percentual_carregado = (rotas_carregadas / total_processadas) * 100 if total_processadas > 0 else 0
 
-    # NOVO CÁLCULO DA META DE 98%
     meta_98_qtd = round(total_rotas * 0.98)
     percentual_realizado_total = (rotas_carregadas / total_rotas) * 100 if total_rotas > 0 else 0
     percentual_progresso_meta = (rotas_carregadas / meta_98_qtd) * 100 if meta_98_qtd > 0 else 0
@@ -79,8 +79,8 @@ try:
         st.markdown(
             f"""
             <div style="background-color:#303031;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
-                <h5 style="color:white;margin-bottom:6px;">🧾 Total de Rotas</h5>
-                <h3 style="color:white;margin:0;">{total_rotas}</h3>
+                <h5 style="color:white;margin-bottom:6px;">🧾 Meta 98% do Total</h5>
+                <h3 style="color:white;margin:0;">{meta_98_qtd}</h3>
             </div>
             """,
             unsafe_allow_html=True
@@ -122,7 +122,7 @@ try:
 
     with col5:
         st.markdown(
-            f"<b>⏱️ Meta 98% do total ({meta_98_qtd} rotas):</b> {rotas_carregadas} / {total_rotas} — <b>{percentual_realizado_total:.2f}%</b>",
+            f"<b>⏱️ Progresso geral (rotas carregadas vs. total):</b> {rotas_carregadas} / {total_rotas} — <b>{percentual_realizado_total:.2f}%</b>",
             unsafe_allow_html=True
         )
         st.markdown(f"""
@@ -145,19 +145,19 @@ try:
 
     with col6:
         st.markdown(
-            f"<b>📉 Progresso até atingir 98% da meta:</b> {percentual_progresso_meta:.2f}% — <b>{rotas_faltando_para_meta} faltando</b>",
+            f"<b>📉 Progresso até atingir a meta de 98% ({meta_98_qtd} rotas):</b> {percentual_progresso_meta:.2f}%<br><b>🚚 Rotas faltando:</b> {rotas_faltando_para_meta}",
             unsafe_allow_html=True
         )
         st.markdown(f"""
             <div style="background-color: #1e1e1e; border-radius: 12px; height: 26px; width: 100%; border: 1px solid #333;">
                 <div style="
-                    background-color: #36B258;
+                    background-color: #ffc107;
                     width: {percentual_progresso_meta:.2f}%;
                     height: 100%;
                     border-radius: 12px;
                     text-align: center;
                     line-height: 26px;
-                    color: white;
+                    color: black;
                     font-weight: 600;
                     font-size: 15px;
                 ">
