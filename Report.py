@@ -75,7 +75,7 @@ try:
     """, unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
-    col1, col2 = st.columns(2)
+
 with col1:
     st.markdown(
         f"""
@@ -86,17 +86,17 @@ with col1:
         """,
         unsafe_allow_html=True
     )
-    
-    with col2:
-        st.markdown(
-            f"""
-            <div style="background-color:#000080;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
-                <h5 style="color:white;margin-bottom:6px;">🌙 Rotas PM</h5>
-                <h3 style="color:white;margin:0;">{rotas_pm}</h3>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+
+with col2:
+    st.markdown(
+        f"""
+        <div style="background-color:#000080;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
+            <h5 style="color:white;margin-bottom:6px;">🌙 Rotas PM</h5>
+            <h3 style="color:white;margin:0;">{rotas_pm}</h3>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     col3, col4 = st.columns(2)
     with col3:
