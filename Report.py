@@ -159,7 +159,7 @@ try:
         st.markdown(f"""
             <div style="background-color: #1e1e1e; border-radius: 12px; height: 26px; width: 100%; border: 1px solid #333;">
                 <div style="
-                    background-color: #ffc107;
+                    background-color: #EE8E2D;
                     width: {percentual_progresso_meta:.2f}%;
                     height: 100%;
                     border-radius: 12px;
