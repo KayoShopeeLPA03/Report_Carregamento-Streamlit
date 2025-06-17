@@ -165,7 +165,7 @@ try:
                     border-radius: 12px;
                     text-align: center;
                     line-height: 26px;
-                    color: black;
+                    color: white;
                     font-weight: 600;
                     font-size: 15px;
                 ">{percentual_progresso_meta:.2f}%</div>
