@@ -58,7 +58,7 @@ try:
 
     meta_95_qtd = round(total_rotas * 0.95)
     percentual_realizado_total = (rotas_carregadas / total_rotas) * 100 if total_rotas > 0 else 0
-    percentual_progresso_meta = (rotas_carregadas / meta_95_qtd) * 100 if meta_98_qtd > 0 else 0
+    percentual_progresso_meta = (rotas_carregadas / meta_95_qtd) * 100 if meta_95_qtd > 0 else 0
     percentual_progresso_meta = min(percentual_progresso_meta, 100)
     rotas_faltando_para_meta = max(0, meta_95_qtd - rotas_carregadas)
 
