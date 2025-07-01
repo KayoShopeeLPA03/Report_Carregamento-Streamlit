@@ -56,11 +56,11 @@ try:
     total_processadas = rotas_carregadas + rotas_nao_carregadas
     percentual_carregado = (rotas_carregadas / total_processadas) * 100 if total_processadas > 0 else 0
 
-    meta_98_qtd = round(total_rotas * 0.98)
+    meta_95_qtd = round(total_rotas * 0.95)
     percentual_realizado_total = (rotas_carregadas / total_rotas) * 100 if total_rotas > 0 else 0
-    percentual_progresso_meta = (rotas_carregadas / meta_98_qtd) * 100 if meta_98_qtd > 0 else 0
+    percentual_progresso_meta = (rotas_carregadas / meta_95_qtd) * 100 if meta_98_qtd > 0 else 0
     percentual_progresso_meta = min(percentual_progresso_meta, 100)
-    rotas_faltando_para_meta = max(0, meta_98_qtd - rotas_carregadas)
+    rotas_faltando_para_meta = max(0, meta_95_qtd - rotas_carregadas)
 
     fuso_brasil = pytz.timezone("America/Sao_Paulo")
     hora_atualizacao = datetime.now(fuso_brasil).strftime("%H:%M:%S")
@@ -153,7 +153,7 @@ try:
 
     with col6:
         st.markdown(
-            f"<b>📉 Progresso até atingir a meta de 98% ({meta_98_qtd} rotas):</b> {percentual_progresso_meta:.2f}%<br><b>🚚 Rotas faltando:</b> {rotas_faltando_para_meta}",
+            f"<b>📉 Progresso até atingir a meta de 95% ({meta_95_qtd} rotas):</b> {percentual_progresso_meta:.2f}%<br><b>🚚 Rotas faltando:</b> {rotas_faltando_para_meta}",
             unsafe_allow_html=True
         )
         st.markdown(f"""
