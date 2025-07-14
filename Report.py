@@ -5,21 +5,46 @@ import plotly.graph_objects as go
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import pytz
-import math
 
-# Configurações da página
+# Configuração da página
 st.set_page_config(
     page_title="Report Carregamento - LPA-03", 
     page_icon="⏱️",
     layout="wide"
 )
 
-st.markdown("---")
-st.caption("**Desenvolvido por Kayo Soares - LPA 03**")
+# Estilo customizado do botão
+st.markdown("""
+    <style>
+        div.stButton > button:first-child {
+            background-color: #1f77b4;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 12px;
+            padding: 10px 20px;
+            transition: 0.3s;
+        }
+        div.stButton > button:first-child:hover {
+            background-color: #105d90;
+            transform: scale(1.02);
+        }
+    </style>
+""", unsafe_allow_html=True)
 
-# Botão de atualização manual
+# Botão de atualização
 if st.button("🔄 Atualizar dados"):
     st.rerun()
+
+# Seletor: Geral / AM / PM
+tipo_carregamento = st.radio(
+    "Escolha o tipo de carregamento:",
+    options=["Geral", "Carregamento AM", "Carregamento PM"],
+    horizontal=True
+)
+
+st.markdown("---")
+st.caption("**Desenvolvido por Kayo Soares - LPA 03**")
 
 # Autenticação com Google Sheets
 file_name = "teste-motoristas-4f5250c96818.json"
@@ -47,11 +72,26 @@ try:
 
     data_carregamento = df["Data Exp."].iloc[0] if "Data Exp." in df.columns and not df["Data Exp."].isnull().all() else datetime.today().strftime('%d/%m/%Y')
 
+    # Filtro de carregamento
+    if tipo_carregamento == "Carregamento AM":
+        df_filtrado = df[df["OpsClock"] == "CARREG. AM"]
+    elif tipo_carregamento == "Carregamento PM":
+        df_filtrado = df[df["OpsClock"] == "CARREG. PM"]
+    else:
+        df_filtrado = df.copy()
+
     # KPIs
-    total_rotas = df["Gaiola"].nunique()
-    rotas_pm = df[df["OpsClock"] == "PM 12:00"]["Gaiola"].nunique()
-    rotas_carregadas = df[df["OK?"] == "OK"]["Gaiola"].nunique()
-    rotas_nao_carregadas = df[df["OK?"] == "-"]["Gaiola"].nunique()
+    total_rotas = df_filtrado["Gaiola"].nunique()
+    rotas_carregadas = df_filtrado[df_filtrado["OK?"] == "OK"]["Gaiola"].nunique()
+    rotas_nao_carregadas = df_filtrado[df_filtrado["OK?"] == "-"]["Gaiola"].nunique()
+
+    # ✅ Rotas canceladas específicas por tipo
+    if tipo_carregamento == "Carregamento AM":
+        rotas_canceladas = df[df["OpsClock"].str.upper() == "ROTA CANCELADA AM"]["Gaiola"].nunique()
+    elif tipo_carregamento == "Carregamento PM":
+        rotas_canceladas = df[df["OpsClock"].str.upper() == "ROTA CANCELADA PM"]["Gaiola"].nunique()
+    else:
+        rotas_canceladas = df[df["OpsClock"].str.upper().isin(["ROTA CANCELADA AM", "ROTA CANCELADA PM"])]["Gaiola"].nunique()
 
     total_processadas = rotas_carregadas + rotas_nao_carregadas
     percentual_carregado = (rotas_carregadas / total_processadas) * 100 if total_processadas > 0 else 0
@@ -76,7 +116,7 @@ try:
     # Título
     st.markdown(f"""
         <h2 style='text-align: center;'>⏱️ Report de Carregamento - LPA-03</h2>
-        <p style='text-align: center; font-size: 16px;'>🗓️ Carregamento referente ao dia: <b>{data_carregamento}</b></p>
+        <p style='text-align: center; font-size: 16px;'>🗓️ Carregamento referente ao dia: <b>{data_carregamento}</b> — <b>{tipo_carregamento}</b></p>
     """, unsafe_allow_html=True)
 
     # KPIs superiores
@@ -95,9 +135,9 @@ try:
     with col2:
         st.markdown(
             f"""
-            <div style="background-color:#000080;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
-                <h5 style="color:white;margin-bottom:6px;">🌙 Rotas PM</h5>
-                <h3 style="color:white;margin:0;">{rotas_pm}</h3>
+            <div style="background-color:#A52A2A;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
+                <h5 style="color:white;margin-bottom:6px;">❎ Rotas Canceladas</h5>
+                <h3 style="color:white;margin:0;">{rotas_canceladas}</h3>
             </div>
             """,
             unsafe_allow_html=True
@@ -172,7 +212,7 @@ try:
             </div>
         """, unsafe_allow_html=True)
 
-    # Gráfico de pizza
+    # Gráfico pizza
     with st.expander("📈 Ver gráfico de status de carregamento"):
         fig = go.Figure(data=[go.Pie(
             labels=["Carregadas", "Não Carregadas"],
