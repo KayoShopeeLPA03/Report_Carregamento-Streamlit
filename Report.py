@@ -85,13 +85,12 @@ try:
     rotas_carregadas = df_filtrado[df_filtrado["OK?"] == "OK"]["Gaiola"].nunique()
     rotas_nao_carregadas = df_filtrado[df_filtrado["OK?"] == "-"]["Gaiola"].nunique()
 
-    # ✅ Rotas canceladas específicas por tipo
-    if tipo_carregamento == "Carregamento AM":
-        rotas_canceladas = df[df["OpsClock"].str.upper() == "ROTA CANCELADA AM"]["Gaiola"].nunique()
-    elif tipo_carregamento == "Carregamento PM":
-        rotas_canceladas = df[df["OpsClock"].str.upper() == "ROTA CANCELADA PM"]["Gaiola"].nunique()
+    # 📦 Total de peças expedidas apenas das rotas carregadas
+    if "Qtd Pct" in df_filtrado.columns:
+        df_filtrado["Qtd Pct"] = pd.to_numeric(df_filtrado["Qtd Pct"], errors="coerce").fillna(0)
+        total_pecas = int(df_filtrado[df_filtrado["OK?"] == "OK"]["Qtd Pct"].sum())
     else:
-        rotas_canceladas = df[df["OpsClock"].str.upper().isin(["ROTA CANCELADA AM", "ROTA CANCELADA PM"])]["Gaiola"].nunique()
+        total_pecas = 0
 
     total_processadas = rotas_carregadas + rotas_nao_carregadas
     percentual_carregado = (rotas_carregadas / total_processadas) * 100 if total_processadas > 0 else 0
@@ -135,9 +134,9 @@ try:
     with col2:
         st.markdown(
             f"""
-            <div style="background-color:#A52A2A;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
-                <h5 style="color:white;margin-bottom:6px;">❎ Rotas Canceladas</h5>
-                <h3 style="color:white;margin:0;">{rotas_canceladas}</h3>
+            <div style="background-color:#4B0082;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
+                <h5 style="color:white;margin-bottom:6px;">📦 Peças Expedidas</h5>
+                <h3 style="color:white;margin:0;">{total_pecas:,}</h3>
             </div>
             """,
             unsafe_allow_html=True
@@ -247,3 +246,4 @@ try:
 
 except Exception as e:
     st.error(f"Erro ao carregar dados: {e}")
+
