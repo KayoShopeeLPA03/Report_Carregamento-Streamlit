@@ -134,7 +134,7 @@ try:
     with col2:
         st.markdown(
             f"""
-            <div style="background-color:##2D004E;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
+            <div style="background-color:#296898;padding:12px 10px;border-radius:10px;text-align:center;margin-bottom:10px;">
                 <h5 style="color:white;margin-bottom:6px;">📦 Pacotes Expedidos</h5>
                 <h3 style="color:white;margin:0;">{total_pecas:,}</h3>
             </div>
