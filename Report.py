@@ -81,7 +81,7 @@ try:
         df_filtrado = df.copy()
 
     # KPIs
-    total_rotas = df_filtrado["Data AT"].nunique()
+    total_rotas = df_filtrado["Gaiola"].nunique()
     rotas_carregadas = df_filtrado[df_filtrado["OK?"] == "OK"]["Gaiola"].nunique()
     rotas_nao_carregadas = df_filtrado[df_filtrado["OK?"] == "-"]["Gaiola"].nunique()
 
@@ -246,5 +246,6 @@ try:
 
 except Exception as e:
     st.error(f"Erro ao carregar dados: {e}")
+
 
 
