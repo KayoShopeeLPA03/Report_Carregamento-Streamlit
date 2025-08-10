@@ -39,7 +39,7 @@ if st.button("🔄 Atualizar dados"):
     st.rerun()
 
 # Seletor: Geral / AM / PM
-.tipo_carregamento = st.radio(
+tipo_carregamento = st.radio(
     "Escolha o tipo de carregamento:",
     options=["Geral", "Carregamento AM", "Carregamento PM"],
     horizontal=True
@@ -101,7 +101,7 @@ try:
     if "OpsClock" in df.columns:
         df["OpsClock"] = df["OpsClock"].astype(str).str.strip().str.upper()
 
-    # Data do carregamento (mantendo sua lógica)
+    # Data do carregamento
     data_carregamento = (
         df["Data Exp."].iloc[0]
         if "Data Exp." in df.columns and not df["Data Exp."].isnull().all()
@@ -109,9 +109,9 @@ try:
     )
 
     # --- Filtro de carregamento ---
-    if .tipo_carregamento == "Carregamento AM":
+    if tipo_carregamento == "Carregamento AM":
         df_filtrado = df[df["OpsClock"] == "CARREG. AM"].copy()
-    elif .tipo_carregamento == "Carregamento PM":
+    elif tipo_carregamento == "Carregamento PM":
         df_filtrado = df[df["OpsClock"] == "CARREG. PM"].copy()
     else:
         df_filtrado = df.copy()
@@ -168,7 +168,7 @@ try:
     # Título
     st.markdown(f"""
         <h2 style='text-align: center;'>⏱️ Report de Carregamento - LPA-03</h2>
-        <p style='text-align: center; font-size: 16px;'>🗓️ Carregamento referente ao dia: <b>{data_carregamento}</b> — <b>{.tipo_carregamento}</b></p>
+        <p style='text-align: center; font-size: 16px;'>🗓️ Carregamento referente ao dia: <b>{data_carregamento}</b> — <b>{tipo_carregamento}</b></p>
     """, unsafe_allow_html=True)
 
     # KPIs superiores
