@@ -5,12 +5,10 @@ import plotly.graph_objects as go
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import pytz
-import re
-import math
 
 # Configuração da página
 st.set_page_config(
-    page_title="Report Carregamento - LPA-03",
+    page_title="Report Carregamento - LPA-03", 
     page_icon="⏱️",
     layout="wide"
 )
@@ -48,18 +46,6 @@ tipo_carregamento = st.radio(
 st.markdown("---")
 st.caption("**Desenvolvido por Kayo Soares - LPA 03**")
 
-# --- Função de normalização de Gaiola (NS1, NS-1, NS_01 -> NS1) ---
-def canonical_gaiola(x):
-    if x is None or (isinstance(x, float) and pd.isna(x)):
-        return pd.NA
-    x = str(x).strip().upper()
-    # PREFIXO + separador opcional + número no final
-    m = re.match(r'([A-Z]+)\s*[-_ ]*\s*(\d+)$', x)
-    if m:
-        prefix, num = m.group(1), int(m.group(2))
-        return f"{prefix}{num}"  # forma canônica sem hífen: NS1, NS12...
-    return pd.NA if x in {"", "-", "_"} else x
-
 # Autenticação com Google Sheets
 file_name = "teste-motoristas-4f5250c96818.json"
 Scopes = [
@@ -77,7 +63,6 @@ try:
     planilha = gc.open("PROGRAMAÇÃO FROTA - Belem - LPA-02")
     aba = planilha.worksheet("Programação")
 
-    # --- Leitura e limpeza base ---
     dados = aba.get_all_values()[2:]
     df = pd.DataFrame(dados[1:], columns=dados[0])
 
@@ -85,76 +70,38 @@ try:
     df.columns = df.columns.str.strip()
     df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
 
-    # Normalizações
-    if "Gaiola" not in df.columns:
-        st.error("Coluna 'Gaiola' não encontrada na planilha.")
-        st.stop()
+    data_carregamento = df["Data Exp."].iloc[0] if "Data Exp." in df.columns and not df["Data Exp."].isnull().all() else datetime.today().strftime('%d/%m/%Y')
 
-    df["Gaiola_norm"] = df["Gaiola"].apply(canonical_gaiola)
-    df = df.dropna(subset=["Gaiola_norm"])
-
-    if "OK?" in df.columns:
-        df["OK?"] = df["OK?"].astype(str).str.strip().str.upper()
-    else:
-        df["OK?"] = "-"
-
-    if "OpsClock" in df.columns:
-        df["OpsClock"] = df["OpsClock"].astype(str).str.strip().str.upper()
-
-    # Data do carregamento
-    data_carregamento = (
-        df["Data Exp."].iloc[0]
-        if "Data Exp." in df.columns and not df["Data Exp."].isnull().all()
-        else datetime.today().strftime('%d/%m/%Y')
-    )
-
-    # --- Filtro de carregamento ---
+    # Filtro de carregamento
     if tipo_carregamento == "Carregamento AM":
-        df_filtrado = df[df["OpsClock"] == "CARREG. AM"].copy()
+        df_filtrado = df[df["OpsClock"] == "CARREG. AM"]
     elif tipo_carregamento == "Carregamento PM":
-        df_filtrado = df[df["OpsClock"] == "CARREG. PM"].copy()
+        df_filtrado = df[df["OpsClock"] == "CARREG. PM"]
     else:
         df_filtrado = df.copy()
 
-    # --- KPIs por rota (deduplicado via Gaiola_norm) ---
-    # Regra: rota é "OK" se existir pelo menos um OK naquela rota;
-    # se não houver OK mas houver "-", conta como não carregada; senão "OUTRO".
-    status_por_rota = (
-        df_filtrado.groupby("Gaiola_norm")["OK?"]
-          .apply(lambda s: "OK" if (s == "OK").any()
-                 else "-" if (s == "-").any()
-                 else "OUTRO")
-    )
+    # KPIs
+    total_rotas = df_filtrado["Gaiola"].nunique()
+    rotas_carregadas = df_filtrado[df_filtrado["OK?"] == "OK"]["Gaiola"].nunique()
+    rotas_nao_carregadas = df_filtrado[df_filtrado["OK?"] == "-"]["Gaiola"].nunique()
 
-    total_rotas = status_por_rota.size
-    rotas_carregadas = (status_por_rota == "OK").sum()
-    rotas_nao_carregadas = (status_por_rota == "-").sum()
-
-    # 📦 Total de peças apenas das rotas realmente OK
+    # 📦 Total de peças expedidas apenas das rotas carregadas
     if "Qtd Pct" in df_filtrado.columns:
-        q = df_filtrado[df_filtrado["Gaiola_norm"].isin(status_por_rota[status_por_rota == "OK"].index)].copy()
-        q["Qtd Pct"] = pd.to_numeric(
-            q["Qtd Pct"].astype(str)
-                        .str.replace(".", "", regex=False)   # remove milhar
-                        .str.replace(",", ".", regex=False), # vírgula -> ponto
-            errors="coerce"
-        ).fillna(0)
-        total_pecas = int(q["Qtd Pct"].sum())
+        df_filtrado["Qtd Pct"] = pd.to_numeric(df_filtrado["Qtd Pct"], errors="coerce").fillna(0)
+        total_pecas = int(df_filtrado[df_filtrado["OK?"] == "OK"]["Qtd Pct"].sum())
     else:
         total_pecas = 0
 
     total_processadas = rotas_carregadas + rotas_nao_carregadas
     percentual_carregado = (rotas_carregadas / total_processadas) * 100 if total_processadas > 0 else 0
 
-    # Meta 95% com teto
-    meta_95_qtd = math.ceil(total_rotas * 0.95)
+    meta_95_qtd = round(total_rotas * 0.95)
     percentual_realizado_total = (rotas_carregadas / total_rotas) * 100 if total_rotas > 0 else 0
     percentual_progresso_meta = (rotas_carregadas / meta_95_qtd) * 100 if meta_95_qtd > 0 else 0
     percentual_progresso_meta = min(percentual_progresso_meta, 100)
     rotas_faltando_para_meta = max(0, meta_95_qtd - rotas_carregadas)
 
-    # Fuso correto para Belém
-    fuso_brasil = pytz.timezone("America/Belem")
+    fuso_brasil = pytz.timezone("America/Sao_Paulo")
     hora_atualizacao = datetime.now(fuso_brasil).strftime("%H:%M:%S")
     st.markdown(
         f"""
