@@ -63,7 +63,7 @@ try:
     planilha = gc.open("PROGRAMAÇÃO FROTA - Belem - LPA-02")
     aba = planilha.worksheet("Programação")
 
-    dados = aba.get_all_values()[2:]
+    dados = aba.get_all_values()[5:]
     df = pd.DataFrame(dados[1:], columns=dados[0])
 
     df = df.dropna(how="all")
@@ -246,3 +246,4 @@ try:
 
 except Exception as e:
     st.error(f"Erro ao carregar dados: {e}")
+
