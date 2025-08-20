@@ -5,10 +5,12 @@ import plotly.graph_objects as go
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import pytz
+import re
+import unicodedata
 
 # Configuração da página
 st.set_page_config(
-    page_title="Report Carregamento - LPA-03", 
+    page_title="Report Carregamento - LPA-03",
     page_icon="⏱️",
     layout="wide"
 )
@@ -63,32 +65,122 @@ try:
     planilha = gc.open("PROGRAMAÇÃO FROTA - Belem - LPA-02")
     aba = planilha.worksheet("Programação")
 
-    dados = aba.get_all_values()[5:]
-    df = pd.DataFrame(dados[1:], columns=dados[0])
+    # ------------------ Leitura robusta do Google Sheets ------------------
 
+    dados_crus = aba.get_all_values()
+
+    def normalize(s: str) -> str:
+        s = s.strip()
+        s = unicodedata.normalize("NFKD", s)
+        s = "".join(ch for ch in s if not unicodedata.combining(ch))
+        s = s.lower()
+        s = re.sub(r"\s+", " ", s)
+        s = s.replace("?", "")
+        s = s.replace(".", "")
+        s = s.replace("-", "")
+        return s
+
+    # Aliases -> nome canônico esperado no app
+    ALIASES = {
+        "Gaiola": {"gaiola", "gaiolas", "cage", "gaiola(s)"},
+        "OK?": {"ok", "ok?", "status", "carregada", "oknao", "aprovado"},
+        "OpsClock": {"opsclock", "turno", "carregamento", "janela", "carreg ampm", "ampm", "carreg am", "carreg pm"},
+        "Data Exp.": {"data exp", "dataexp", "data expediente", "data carregamento", "data"},
+        "Qtd Pct": {"qtd pct", "qtdpct", "pacotes", "qtd pacotes", "qtd pcts", "qtd pecas", "qtd peças", "quantidade"}
+    }
+
+    # Detecta linha de cabeçalho
+    best_row_idx = None
+    best_score = -1
+    normalized_rows = []
+    for i, row in enumerate(dados_crus):
+        norm = [normalize(c) for c in row]
+        normalized_rows.append(norm)
+        score = 0
+        for aliases in ALIASES.values():
+            if any(col in aliases for col in norm):
+                score += 1
+        if score > best_score:
+            best_score = score
+            best_row_idx = i
+
+    if best_row_idx is None or best_score == 0:
+        st.error("Não consegui identificar o cabeçalho automaticamente. Verifique a planilha.")
+        st.stop()
+
+    header_norm = normalized_rows[best_row_idx]
+    header_raw = dados_crus[best_row_idx]
+    dados = dados_crus[best_row_idx + 1:]
+
+    df = pd.DataFrame(dados, columns=header_raw)
     df = df.dropna(how="all")
-    df.columns = df.columns.str.strip()
-    df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+    df.columns = [c.strip() for c in df.columns]
 
-    data_carregamento = df["Data Exp."].iloc[0] if "Data Exp." in df.columns and not df["Data Exp."].isnull().all() else datetime.today().strftime('%d/%m/%Y')
+    # Mapeia colunas reais -> nomes canônicos
+    available_norm = {normalize(c): c for c in df.columns}
+    name_map = {}
+    missing = []
+    for canon, aliases in ALIASES.items():
+        match = next((available_norm[a] for a in aliases if a in available_norm), None)
+        if match:
+            name_map[canon] = match
+        else:
+            missing.append(canon)
 
-    # Filtro de carregamento
+    if missing:
+        st.error(
+            "Colunas obrigatórias ausentes na planilha: "
+            + ", ".join(missing)
+            + "<br><br>Colunas encontradas: "
+            + ", ".join(df.columns),
+            icon="⚠️"
+        )
+        st.stop()
+
+    # Limpeza geral de espaços
+    for col in df.columns:
+        df[col] = df[col].map(lambda x: x.strip() if isinstance(x, str) else x)
+
+    # ------------------ KPIs e filtros usando o mapeamento ------------------
+
+    # Data do carregamento
+    col_data = name_map["Data Exp."]
+    data_carregamento = (
+        df[col_data].iloc[0]
+        if col_data in df.columns and not pd.Series(df[col_data]).isnull().all()
+        else datetime.today().strftime('%d/%m/%Y')
+    )
+
+    # Filtro AM/PM (robusto a variações de texto)
+    col_ops = name_map["OpsClock"]
+    ops_series = df[col_ops].astype(str).str.upper()
+
     if tipo_carregamento == "Carregamento AM":
-        df_filtrado = df[df["OpsClock"] == "CARREG. AM"]
+        df_filtrado = df[ops_series.str.contains("AM", na=False)]
     elif tipo_carregamento == "Carregamento PM":
-        df_filtrado = df[df["OpsClock"] == "CARREG. PM"]
+        df_filtrado = df[ops_series.str.contains("PM", na=False)]
     else:
         df_filtrado = df.copy()
 
     # KPIs
-    total_rotas = df_filtrado["Gaiola"].nunique()
-    rotas_carregadas = df_filtrado[df_filtrado["OK?"] == "OK"]["Gaiola"].nunique()
-    rotas_nao_carregadas = df_filtrado[df_filtrado["OK?"] == "-"]["Gaiola"].nunique()
+    col_gaiola = name_map["Gaiola"]
+    col_ok = name_map["OK?"]
+
+    total_rotas = df_filtrado[col_gaiola].nunique()
+
+    ok_series = df_filtrado[col_ok].astype(str).str.strip().str.upper()
+    mask_ok = ok_series.eq("OK")
+    mask_nao = ok_series.isin(["-", "", "N", "NAO", "NÃO", "PENDENTE", "0"])
+
+    rotas_carregadas = df_filtrado[mask_ok][col_gaiola].nunique()
+    rotas_nao_carregadas = df_filtrado[mask_nao][col_gaiola].nunique()
 
     # 📦 Total de peças expedidas apenas das rotas carregadas
-    if "Qtd Pct" in df_filtrado.columns:
-        df_filtrado["Qtd Pct"] = pd.to_numeric(df_filtrado["Qtd Pct"], errors="coerce").fillna(0)
-        total_pecas = int(df_filtrado[df_filtrado["OK?"] == "OK"]["Qtd Pct"].sum())
+    col_qtd = name_map["Qtd Pct"]
+    if col_qtd in df_filtrado.columns:
+        df_filtrado = df_filtrado.copy()
+        df_filtrado.loc[:, col_qtd] = pd.to_numeric(df_filtrado[col_qtd], errors="coerce").fillna(0)
+        total_pecas = int(df_filtrado[mask_ok][col_qtd].sum())
     else:
         total_pecas = 0
 
@@ -101,8 +193,9 @@ try:
     percentual_progresso_meta = min(percentual_progresso_meta, 100)
     rotas_faltando_para_meta = max(0, meta_95_qtd - rotas_carregadas)
 
-    fuso_brasil = pytz.timezone("America/Sao_Paulo")
-    hora_atualizacao = datetime.now(fuso_brasil).strftime("%H:%M:%S")
+    # Hora de atualização (America/Belem)
+    fuso_belem = pytz.timezone("America/Belem")
+    hora_atualizacao = datetime.now(fuso_belem).strftime("%H:%M:%S")
     st.markdown(
         f"""
         <div style="background-color:#444;padding:10px;border-radius:8px;text-align:center;margin-bottom:15px;">
@@ -246,4 +339,3 @@ try:
 
 except Exception as e:
     st.error(f"Erro ao carregar dados: {e}")
-
